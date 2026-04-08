@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Should Noiseredux Play?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #003791 0%, #DC0032 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #003791 0%, #0052CC 50%, #DC0032 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            font-weight: 300;
+        }
+        
+        .controls {
+            background: #f5f5f5;
+            padding: 20px 30px;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .controls label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .controls select {
+            padding: 10px 15px;
+            font-size: 1em;
+            border: 2px solid #003791;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+        
+        .controls select:hover {
+            border-color: #DC0032;
+        }
+        
+        .controls select:focus {
+            outline: none;
+            border-color: #DC0032;
+            box-shadow: 0 0 0 3px rgba(220, 0, 50, 0.1);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 30px;
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 6px;
+        }
+        
+        .games-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .game-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            gap: 15px;
+            min-height: 100px;
+        }
+        
+        .game-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 55, 145, 0.3);
+            border-color: #003791;
+        }
+        
+        .game-rank {
+            font-weight: bold;
+            font-size: 1.5em;
+            color: #003791;
+            min-width: 50px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .game-image-container {
+            position: relative;
+            width: 70px;
+            height: 90px;
+            background: #f0f0f0;
+            overflow: hidden;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        
+        .game-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .no-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-size: 0.7em;
+            text-align: center;
+            padding: 5px;
+            width: 100%;
+        }
+        
+        .game-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+        
+        .game-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            line-height: 1.3;
+        }
+        
+        .game-rating {
+            color: #666;
+            font-size: 0.85em;
+        }
+        
+        .rating-value {
+            color: #DC0032;
+            font-weight: 600;
+        }
+        
+        .game-platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .platform-tag {
+            background: #003791;
+            color: white;
+            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 30px;
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        footer a {
+            color: #003791;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            color: #DC0032;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>What Should Noiseredux Play?</h1>
+            <div class="subtitle">Discover the highest-rated games from any year</div>
+        </header>
+        
+        <div class="controls">
+            <label for="yearSelect">Select Year:</label>
+            <select id="yearSelect">
+                <!-- Years will be populated by JavaScript -->
+            </select>
+        </div>
+        
+        <div id="content">
+            <div class="loading">Loading games</div>
+        </div>
+        
+        <footer>
+            Powered by <a href="https://www.igdb.com/" target="_blank">IGDB</a> | 
+            Data freely provided by IGDB.com
+        </footer>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace this with your actual Google Apps Script deployment URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyyjKXZmf2ADZLZPH5l6Ysy4dodWNTYjM_xQt06gXjrs8HLCxoio5XU5w2dMBXBsSqGqw/exec';
+        
+        // Platform IDs that we want to include
+        const ALLOWED_PLATFORM_IDS = [
+            75,  // Apple II
+            14,  // Mac
+            39,  // iOS
+            // Note: iPad shares iOS ID (39)
+            18,  // Nintendo Entertainment System
+            99,  // Famicom
+            19,  // Super Nintendo Entertainment System
+            58,  // Super Famicom
+            4,   // Nintendo 64
+            21,  // GameCube
+            5,   // Wii
+            41,  // Wii U
+            130, // Switch
+            508, // Switch 2
+            33,  // Gameboy
+            22,  // Gameboy Color
+            24,  // Gameboy Advance
+            20,  // Nintendo DS
+            37,  // Nintendo 3DS
+            27,  // MSX
+            53,  // MSX2
+            59,  // Atari 2600
+            66,  // Atari 5200
+            60,  // Atari 7800
+            67,  // Intellivision
+            68,  // Colecovision
+            117, // CDi
+            78,  // Sega CD
+            35,  // Sega Game Gear
+            84,  // Sega SG-1000
+            57,  // Wonderswan
+            123, // Wonderswan Color
+            87,  // Virtual Boy
+            7,   // PlayStation
+            8,   // PlayStation 2
+            9,   // PlayStation 3
+            48,  // PlayStation 4
+            167, // PlayStation 5
+            165, // PlayStation VR
+            // Note: PlayStation VR2 may not have a specific ID yet
+            38,  // PlayStation Portable
+            46,  // PlayStation Vita
+            51,  // Family Computer Disk System
+            29,  // Sega Mega Drive/Genesis
+            30,  // Sega 32X
+            77,  // Sharp X1
+            121, // Sharp X68000
+            86,  // TurboGrafx-16/PC Engine
+            64,  // Sega Master System/Mark III
+            150, // TurboGrafx-16/PC Engine CD
+            306, // Satellaview
+            136, // Neo Geo CD
+            16,  // Amiga
+            114, // Amiga CD32
+            // Note: 64DD doesn't appear to have a separate platform ID in IGDB
+            // Note: Sharp MZ-2200 doesn't appear to have a platform ID in IGDB
+        ];
+        
+        // Platform names for display
+        const PLATFORM_NAMES = {
+            75: 'Apple II',
+            14: 'Mac',
+            39: 'iOS',
+            18: 'NES',
+            99: 'Famicom',
+            19: 'SNES',
+            58: 'Super Famicom',
+            4: 'N64',
+            21: 'GameCube',
+            5: 'Wii',
+            41: 'Wii U',
+            130: 'Switch',
+            508: 'Switch 2',
+            33: 'GB',
+            22: 'GBC',
+            24: 'GBA',
+            20: 'DS',
+            37: '3DS',
+            27: 'MSX',
+            53: 'MSX2',
+            59: 'Atari 2600',
+            66: 'Atari 5200',
+            60: 'Atari 7800',
+            67: 'Intellivision',
+            68: 'Colecovision',
+            117: 'CDi',
+            78: 'Sega CD',
+            35: 'Game Gear',
+            84: 'SG-1000',
+            57: 'WonderSwan',
+            123: 'WS Color',
+            87: 'Virtual Boy',
+            7: 'PS1',
+            8: 'PS2',
+            9: 'PS3',
+            48: 'PS4',
+            167: 'PS5',
+            165: 'PSVR',
+            38: 'PSP',
+            46: 'Vita',
+            51: 'Famicom Disk',
+            29: 'Genesis',
+            30: 'Sega 32X',
+            77: 'Sharp X1',
+            121: 'X68000',
+            86: 'TurboGrafx-16',
+            64: 'Master System',
+            150: 'TG-16 CD',
+            306: 'Satellaview',
+            136: 'Neo Geo CD',
+            16: 'Amiga',
+            114: 'Amiga CD32'
+        };
+        
+        // Current year for default
+        const currentYear = new Date().getFullYear();
+        
+        // Populate year dropdown
+        function populateYearDropdown() {
+            const select = document.getElementById('yearSelect');
+            for (let year = currentYear + 1; year >= 1977; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            }
+        }
+        
+        // Filter games by our allowed platforms
+        function filterGamesByPlatforms(games) {
+            console.log(`Filtering ${games.length} games`);
+            console.log('Sample game before filter:', games[0]);
+            
+            const filtered = games.filter(game => {
+                if (!game.platforms || game.platforms.length === 0) {
+                    return false;
+                }
+                // Check if any of the game's platforms are in our allowed list
+                const hasAllowedPlatform = game.platforms.some(platformId => 
+                    ALLOWED_PLATFORM_IDS.includes(platformId)
+                );
+                return hasAllowedPlatform;
+            }).map(game => {
+                // Filter the platforms to only show the ones we care about
+                const filteredPlatforms = game.platforms.filter(platformId => 
+                    ALLOWED_PLATFORM_IDS.includes(platformId)
+                );
+                return {
+                    ...game,
+                    platforms: filteredPlatforms
+                };
+            });
+            
+            console.log(`After filtering: ${filtered.length} games`);
+            if (filtered.length > 0) {
+                console.log('Sample filtered game:', filtered[0]);
+            }
+            
+            return filtered;
+        }
+        
+        // Display games
+        function displayGames(games) {
+            const content = document.getElementById('content');
+            
+            if (games.length === 0) {
+                content.innerHTML = '<div class="no-results">No games found for this year on your selected platforms.</div>';
+                return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'games-grid';
+            
+            games.forEach((game, index) => {
+                const card = document.createElement('a');
+                card.className = 'game-card';
+                // Use slug if available, otherwise fall back to just the game name for search
+                if (game.slug) {
+                    card.href = `https://www.igdb.com/games/${game.slug}`;
+                } else {
+                    // Fallback: create a slug from the game name
+                    const fallbackSlug = game.name.toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    card.href = `https://www.igdb.com/games/${fallbackSlug}`;
+                }
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+                
+                // Rank
+                const rank = document.createElement('div');
+                rank.className = 'game-rank';
+                rank.textContent = `#${index + 1}`;
+                
+                // Image container
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'game-image-container';
+                
+                if (game.cover) {
+                    const img = document.createElement('img');
+                    img.className = 'game-image';
+                    // Use cover_small for the smaller thumbnail
+                    img.src = `https://images.igdb.com/igdb/image/upload/t_cover_small/${game.cover}.jpg`;
+                    img.alt = game.name;
+                    img.loading = 'lazy';
+                    imageContainer.appendChild(img);
+                } else {
+                    const noImage = document.createElement('div');
+                    noImage.className = 'no-image';
+                    noImage.textContent = 'No image';
+                    imageContainer.appendChild(noImage);
+                }
+                
+                // Info container
+                const info = document.createElement('div');
+                info.className = 'game-info';
+                
+                // Title
+                const title = document.createElement('div');
+                title.className = 'game-title';
+                title.textContent = game.name;
+                
+                // Rating
+                const rating = document.createElement('div');
+                rating.className = 'game-rating';
+                if (game.total_rating) {
+                    rating.innerHTML = `Rating: <span class="rating-value">${Math.round(game.total_rating)}</span>`;
+                } else {
+                    rating.textContent = 'No rating';
+                }
+                
+                // Platforms
+                const platformsContainer = document.createElement('div');
+                platformsContainer.className = 'game-platforms';
+                
+                game.platforms.forEach(platformId => {
+                    if (PLATFORM_NAMES[platformId]) {
+                        const tag = document.createElement('span');
+                        tag.className = 'platform-tag';
+                        tag.textContent = PLATFORM_NAMES[platformId];
+                        platformsContainer.appendChild(tag);
+                    }
+                });
+                
+                info.appendChild(title);
+                info.appendChild(rating);
+                info.appendChild(platformsContainer);
+                
+                card.appendChild(rank);
+                card.appendChild(imageContainer);
+                card.appendChild(info);
+                
+                grid.appendChild(card);
+            });
+            
+            content.innerHTML = '';
+            content.appendChild(grid);
+        }
+        
+        // Show error
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        // Show loading
+        function showLoading() {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading games</div>';
+        }
+        
+        // Load games for a specific year
+        async function loadGames(year) {
+            showLoading();
+            
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?year=${year}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch games from server');
+                }
+                
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                console.log(`Received ${data.games ? data.games.length : 0} games from API`);
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Filter games to only those on our platforms
+                const filteredGames = filterGamesByPlatforms(data.games || []);
+                
+                // Limit to top 200
+                const topGames = filteredGames.slice(0, 200);
+                
+                displayGames(topGames);
+                
+            } catch (error) {
+                console.error('Error loading games:', error);
+                showError(`Error loading games: ${error.message}. Please make sure you've set up the Google Apps Script correctly and updated the GOOGLE_SCRIPT_URL in this file.`);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            populateYearDropdown();
+            
+            const yearSelect = document.getElementById('yearSelect');
+            yearSelect.addEventListener('change', (e) => {
+                loadGames(parseInt(e.target.value));
+            });
+            
+            // Load current year by default
+            loadGames(currentYear);
+        });
+    </script>
+</body>
+</html>
